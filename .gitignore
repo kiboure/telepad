@@ -12,3 +12,6 @@ migrations/
 
 # Environment file
 .env
+
+# Other
+media/

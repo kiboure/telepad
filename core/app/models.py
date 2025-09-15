@@ -5,14 +5,14 @@ from users.models import User
 
 
 class Sound(models.Model):
-    user = models.ForeignKey(
+    owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="sounds",
     )
     name = models.CharField(max_length=255)
-    file = models.FileField(upload_to=settings.SOUNDS_DIR)
-    tags = TaggableManager()
+    file = models.FileField()
+    tags = TaggableManager(blank=True)
     likes = models.ManyToManyField(
         User,
         related_name="liked_sounds",
