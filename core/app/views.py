@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions, status, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Count, Q, OuterRef, Exists
@@ -7,7 +7,12 @@ from .models import Sound
 from .serializers import SoundSerializer
 
 
-class SoundViewSet(viewsets.ModelViewSet):
+class SoundViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
     serializer_class = SoundSerializer
     permission_classes = (permissions.IsAuthenticated,)
     forbidden_message = Response(
@@ -19,31 +24,9 @@ class SoundViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return (
             Sound.objects.filter(owner=self.request.user)
-            .annotate(like_count=Count("likes"))
+            .annotate(likes_count=Count("likes"))
             .order_by("-id")
         )
-
-    # ViewSet methods overrides
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
-
-    def update(self, request, *args, **kwargs):
-        sound = self.get_object()
-        if sound.owner != request.user:
-            return self.forbidden_message
-        return super().update(request, *args, **kwargs)
-
-    def partial_update(self, request, *args, **kwargs):
-        sound = self.get_object()
-        if sound.owner != request.user:
-            return self.forbidden_message
-        return super().partial_update(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        sound = self.get_object()
-        if sound.owner != request.user:
-            return self.forbidden_message
-        return super().destroy(request, *args, **kwargs)
 
     # Likes
     @action(detail=True, methods=["post"])
@@ -86,7 +69,7 @@ class SoundViewSet(viewsets.ModelViewSet):
         queryset = (
             Sound.objects.filter(Q(is_private=False) | Q(owner=user))
             .annotate(
-                like_count=Count("likes"),
+                likes_count=Count("likes"),
                 is_saved=Exists(subquery),
             )
             .select_related("owner")
