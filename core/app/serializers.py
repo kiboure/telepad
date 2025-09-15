@@ -9,9 +9,5 @@ class SoundSerializer(TaggitSerializer, serializers.ModelSerializer):
 
     class Meta:
         model = Sound
-        fields = ("id", "name", "file", "tags", "likes_count", "created_at")
-        read_only_fields = ["id", "likes_count", "created_at"]
-
-    # def create(self, validated_data):
-    #     user = self.context["request"].user
-    #     return Sound.objects.create(user=user, **validated_data)
+        fields = ("id", "owner", "name", "file", "tags", "likes_count")
+        read_only_fields = ["id", "owner", "likes_count"]

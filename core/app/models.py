@@ -1,12 +1,11 @@
 from django.db import models
-from django.conf import settings
 from taggit.managers import TaggableManager
 from users.models import User
 
 
 class Sound(models.Model):
     owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
         related_name="sounds",
     )
@@ -16,6 +15,11 @@ class Sound(models.Model):
     likes = models.ManyToManyField(
         User,
         related_name="liked_sounds",
+        blank=True,
+    )
+    saves = models.ManyToManyField(
+        User,
+        related_name="saved_sounds",
         blank=True,
     )
     created_at = models.DateTimeField(auto_now_add=True)

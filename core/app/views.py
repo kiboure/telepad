@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Count
+from django.db.models import Count, Q
 
 from .models import Sound
 from .serializers import SoundSerializer
@@ -15,48 +15,79 @@ class SoundViewSet(viewsets.ModelViewSet):
         status=status.HTTP_403_FORBIDDEN,
     )
 
+    # Default list query
     def get_queryset(self):
-        return Sound.objects.filter(user=self.request.user).annotate(
-            like_count=Count("likes")
+        return (
+            Sound.objects.filter(owner=self.request.user)
+            .annotate(like_count=Count("likes"))
+            .order_by("-id")
         )
 
+    # ViewSet methods overrides
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save(owner=self.request.user)
 
     def update(self, request, *args, **kwargs):
         sound = self.get_object()
-        if sound.user != request.user:
+        if sound.owner != request.user:
             return self.forbidden_message
         return super().update(request, *args, **kwargs)
 
     def partial_update(self, request, *args, **kwargs):
         sound = self.get_object()
-        if sound.user != request.user:
+        if sound.owner != request.user:
             return self.forbidden_message
         return super().partial_update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
         sound = self.get_object()
-        if sound.user != request.user:
+        if sound.owner != request.user:
             return self.forbidden_message
         return super().destroy(request, *args, **kwargs)
 
+    # Likes
     @action(detail=True, methods=["post"])
     def like(self, request, pk=None):
         sound = self.get_object()
         sound.likes.add(request.user)
-        return Response({"status": f"Liked {sound.name}"}, status=status.HTTP_200_OK)
+        return Response({"detail": f"Liked {sound.name}"}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"])
     def unlike(self, request, pk=None):
         sound = self.get_object()
         sound.likes.remove(request.user)
-        return Response({"status": f"Unliked {sound.name}"}, status=status.HTTP_200_OK)
+        return Response({"detail": f"Unliked {sound.name}"}, status=status.HTTP_200_OK)
 
+    # Saves
+    @action(detail=True, methods=["post"])
+    def save(self, request, pk=None):
+        sound = self.get_object()
+        if sound.owner == request.user:
+            return Response(
+                {"detail": "You cannot save your own sound."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        request.user.saves.add(sound)
+        return Response({"detail": f"Saved {sound.name}."}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"])
+    def unsave(self, request, pk=None):
+        sound = self.get_object()
+        request.user.saves.remove(sound)
+        return Response({"detail": f"Removed {sound.name}."}, status=status.HTTP_200_OK)
+
+    # Global list
     @action(detail=False, methods=["get"])
     def list_all(self, request):
-        queryset = Sound.objects.filter(is_private=False).annotate(
-            like_count=Count("likes")
+        user = request.user
+
+        queryset = (
+            Sound.objects.filter(Q(is_private=False) | Q(owner=user))
+            .annotate(like_count=Count("likes"))
+            .select_related("owner")
+            .order_by("-id")
         )
+
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
