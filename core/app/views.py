@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Count, Q
+from django.db.models import Count, Q, OuterRef, Exists
 
 from .models import Sound
 from .serializers import SoundSerializer
@@ -68,13 +68,13 @@ class SoundViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        request.user.saves.add(sound)
+        sound.saves.add(request.user)
         return Response({"detail": f"Saved {sound.name}."}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"])
     def unsave(self, request, pk=None):
         sound = self.get_object()
-        request.user.saves.remove(sound)
+        sound.saves.remove(request.user)
         return Response({"detail": f"Removed {sound.name}."}, status=status.HTTP_200_OK)
 
     # Global list
@@ -82,9 +82,13 @@ class SoundViewSet(viewsets.ModelViewSet):
     def list_all(self, request):
         user = request.user
 
+        subquery = user.saved_sounds.filter(pk=OuterRef("pk"))
         queryset = (
             Sound.objects.filter(Q(is_private=False) | Q(owner=user))
-            .annotate(like_count=Count("likes"))
+            .annotate(
+                like_count=Count("likes"),
+                is_saved=Exists(subquery),
+            )
             .select_related("owner")
             .order_by("-id")
         )

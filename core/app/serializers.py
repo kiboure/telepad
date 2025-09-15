@@ -5,9 +5,10 @@ from .models import Sound
 
 class SoundSerializer(TaggitSerializer, serializers.ModelSerializer):
     tags = TagListSerializerField(required=False)
-    likes_count = serializers.IntegerField(source="likes.count", read_only=True)
+    likes_count = serializers.IntegerField(read_only=True)
+    is_saved = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Sound
-        fields = ("id", "owner", "name", "file", "tags", "likes_count")
-        read_only_fields = ["id", "owner", "likes_count"]
+        fields = ("id", "owner", "name", "file", "tags", "likes_count", "is_saved")
+        read_only_fields = ["id", "owner", "likes_count", "is_saved"]
