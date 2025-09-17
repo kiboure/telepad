@@ -1,3 +1,4 @@
+import os
 from yt_dlp import YoutubeDL
 
 
@@ -38,11 +39,14 @@ def download_and_convert(url: str, user_id: int, max_size: int = 5) -> str:
             "-ac",
             "1",
         ],
-        "outtmpl": "%(user_id)s_%(title)s.%(ext)s",
+        "outtmpl": os.path.join("media", f"{user_id}_%(title)s.ogg"),
         "quiet": True,
         "noplaylist": True,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
-        return (ydl.prepare_filename(info).rsplit(".", 1)[0] + ".ogg", info.get("title"))
+        return (
+            ydl.prepare_filename(info).rsplit("/", 1)[1].rsplit(".", 1)[0] + ".ogg",
+            info.get("title"),
+        )

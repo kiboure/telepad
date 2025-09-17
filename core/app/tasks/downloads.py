@@ -12,7 +12,7 @@ def download_sound(pk: int, url: str):
         return {"error": "User not found."}
 
     try:
-        filepath, title = download_and_convert()
+        filepath, title = download_and_convert(url, user.id)
         sound = Sound.objects.create(
             owner=user,
             name=title,
@@ -21,6 +21,6 @@ def download_sound(pk: int, url: str):
         )
         output = {"status": "ok", "sound_id": sound.id, "name": sound.name}
     except Exception as error:
-        output = {"status": "failed", "detail": error}
+        output = {"status": "failed", "detail": f"{error}"}
 
     return output
