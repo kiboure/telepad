@@ -1,7 +1,12 @@
 from rest_framework.routers import DefaultRouter
-from .views import SoundViewSet
+from django.urls import path
+from . import views
 
 router = DefaultRouter()
-router.register(r"sounds", SoundViewSet, basename="sound")
+router.register(r"", views.SoundViewSet, basename="sound")
 
-urlpatterns = router.urls
+urlpatterns = [
+    path("download/", views.download, name="download"),
+]
+
+urlpatterns += router.urls 

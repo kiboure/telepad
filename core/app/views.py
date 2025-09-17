@@ -1,10 +1,12 @@
 from rest_framework import viewsets, permissions, status, mixins
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from django.db.models import Count, Q, OuterRef, Exists
 
 from .models import Sound
 from .serializers import SoundSerializer
+from .permissions import SoundPermission
+from .tasks.downloads import mock_download
 
 
 class SoundViewSet(
@@ -14,15 +16,34 @@ class SoundViewSet(
     viewsets.GenericViewSet,
 ):
     serializer_class = SoundSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated, SoundPermission)
 
-    # Default list query
+    # --- Quering Methods ---
+
     def get_queryset(self):
+        user = self.request.user
+        foreign_filter = Q(saves=user) if self.action == "list" else Q(is_private=False)
+
         return (
-            Sound.objects.filter(owner=self.request.user)
-            .annotate(likes_count=Count("likes"))
+            Sound.objects.filter(Q(owner=user) | foreign_filter)
+            .annotate(
+                likes_count=Count("likes"),
+                is_saved=Exists(user.saved_sounds.filter(pk=OuterRef("pk"))),
+            )
             .order_by("-id")
         )
+
+    # --- Other ---
+
+    def get_serializer_context(self):
+        return {"request": self.request}
+
+    # --- Custom Actions ---
+
+    @action(detail=False, methods=["get"])
+    def list_all(self, request):
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response(serializer.data)
 
     # Likes
     @action(detail=True, methods=["post"])
@@ -46,7 +67,6 @@ class SoundViewSet(
                 {"detail": "You cannot save your own sound."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
         sound.saves.add(request.user)
         return Response({"detail": f"Saved {sound.name}."}, status=status.HTTP_200_OK)
 
@@ -56,23 +76,12 @@ class SoundViewSet(
         sound.saves.remove(request.user)
         return Response({"detail": f"Removed {sound.name}."}, status=status.HTTP_200_OK)
 
-    # Global list
-    @action(detail=False, methods=["get"])
-    def list_all(self, request):
-        user = request.user
 
-        subquery = user.saved_sounds.filter(pk=OuterRef("pk"))
-        queryset = (
-            Sound.objects.filter(Q(is_private=False) | Q(owner=user))
-            .annotate(
-                likes_count=Count("likes"),
-                is_saved=Exists(subquery),
-            )
-            .select_related("owner")
-            .order_by("-id")
-        )
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-# class DownloaderViewSet(viewsets.ViewSet)
+@api_view(["POST"])
+def download(request):
+    url = request.data.get("url")
+    task = mock_download.delay(request.user.id, url)
+    return Response(
+        {"detail": f"Started task with id {task.id}."},
+        status=status.HTTP_202_ACCEPTED,
+    )

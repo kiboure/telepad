@@ -3,8 +3,8 @@ from django.conf.urls.static import static
 from . import settings
 
 urlpatterns = [
-    path("api/", include(("users.urls"))),
-    path("api/", include("app.urls"))
+    path("api/users/", include(("users.urls", "users"), namespace="users")),
+    path("api/sounds/", include(("app.urls", "app"), namespace="app")),
 ]
 
 if settings.DEBUG:

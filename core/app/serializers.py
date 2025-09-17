@@ -10,5 +10,5 @@ class SoundSerializer(TaggitSerializer, serializers.ModelSerializer):
 
     class Meta:
         model = Sound
-        fields = ("id", "owner", "name", "file", "tags", "likes_count", "is_saved")
+        fields = ("id", "owner", "name", "file", "tags", "likes_count", "is_saved", "is_private")
         read_only_fields = ["id", "owner", "file", "likes_count", "is_saved"]
