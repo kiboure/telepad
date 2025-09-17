@@ -6,7 +6,7 @@ from django.db.models import Count, Q, OuterRef, Exists
 from .models import Sound
 from .serializers import SoundSerializer
 from .permissions import SoundPermission
-from .tasks.downloads import mock_download
+from .tasks.downloads import download_sound
 
 
 class SoundViewSet(
@@ -80,7 +80,7 @@ class SoundViewSet(
 @api_view(["POST"])
 def download(request):
     url = request.data.get("url")
-    task = mock_download.delay(request.user.id, url)
+    task = download_sound.delay(request.user.id, url)
     return Response(
         {"detail": f"Started task with id {task.id}."},
         status=status.HTTP_202_ACCEPTED,

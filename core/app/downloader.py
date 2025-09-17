@@ -45,4 +45,4 @@ def download_and_convert(url: str, user_id: int, max_size: int = 5) -> str:
 
     with YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
-        return ydl.prepare_filename(info).rsplit(".", 1)[0] + ".ogg"
+        return (ydl.prepare_filename(info).rsplit(".", 1)[0] + ".ogg", info.get("title"))
