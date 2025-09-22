@@ -9,7 +9,7 @@ from django.contrib.auth.models import (
 class UserManager(BaseUserManager):
     def create_user(self, telegram_id: int, username: str = None):
         if not telegram_id:
-            raise ValueError("Users must have a telegram id")
+            raise ValueError("Field telegram_id is required.")
 
         user = self.model(telegram_id=telegram_id, username=username)
         user.set_unusable_password()

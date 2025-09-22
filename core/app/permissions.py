@@ -1,4 +1,5 @@
 from rest_framework import permissions
+from django.conf import settings
 
 
 class SoundPermission(permissions.BasePermission):
@@ -13,3 +14,8 @@ class SoundPermission(permissions.BasePermission):
             return not obj.is_private or obj.owner == request.user
 
         return False
+
+
+class IsBotPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.headers.get("Authorization") == f"Bot {settings.BOT_API_KEY}"

@@ -14,6 +14,7 @@ environ.Env.read_env(BASE_DIR.parent / ".env")
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env.bool("DJANGO_DEBUG", default=False)
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost"])
+BOT_API_KEY = env("BOT_API_KEY")
 
 # -- APPLICATIONS --
 INSTALLED_APPS = [
@@ -91,8 +92,9 @@ USE_TZ = True
 
 # -- STATIC --
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR.parent / "static"
 MEDIA_URL = "media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = BASE_DIR.parent / "media"
 
 # -- OTHER --
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

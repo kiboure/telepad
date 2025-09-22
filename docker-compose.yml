@@ -10,16 +10,26 @@ services:
 
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: gunicorn -c gunicorn.conf.py telepad.wsgi:application
     volumes:
       - ./core:/app
       - ./media:/app/media
-    ports:
-      - "8000:8000"
+      - ./static:/app/static
     env_file: .env
     depends_on:
       - db
       - redis
+  
+  nginx:
+    image: nginx:1.29-alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./media:/media
+      - ./static:/app/static
+    ports:
+      - "80:80"
+    depends_on:
+      - web
 
   celery:
     build: .
@@ -33,7 +43,16 @@ services:
       - redis
       - web
 
+  bot:
+    build: .
+    command: python bot.py
+    volumes:
+      - ./media:/media
+      - ./telegram:/app
+    env_file: .env
+    depends_on:
+      - redis
+      - db
 
 volumes:
   db_data:
-
