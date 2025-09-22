@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from taggit.serializers import TagListSerializerField, TaggitSerializer
+
 from .models import Sound
 
 
@@ -10,12 +11,22 @@ class SoundSerializer(TaggitSerializer, serializers.ModelSerializer):
 
     class Meta:
         model = Sound
-        fields = ("id", "owner", "name", "file", "tags", "likes_count", "is_saved", "is_private")
+        fields = (
+            "id",
+            "owner",
+            "name",
+            "file",
+            "tags",
+            "likes_count",
+            "is_saved",
+            "is_private",
+        )
         read_only_fields = ["id", "owner", "file", "likes_count", "is_saved"]
 
 
 class DownloadSerializer(serializers.Serializer):
     url = serializers.URLField(max_length=2048, required=True)
 
-    class Meta:
-        fields = ['url']
+
+class UploadSerializer(serializers.Serializer):
+    file = serializers.FileField(required=True, allow_empty_file=False)

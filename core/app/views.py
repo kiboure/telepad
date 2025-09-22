@@ -1,12 +1,14 @@
 from rest_framework import viewsets, permissions, status, mixins
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import action, api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from django.db.models import Count, Q, OuterRef, Exists
+from django.core.files.storage import default_storage
 
 from .models import Sound
-from .serializers import SoundSerializer, DownloadSerializer
+from .serializers import SoundSerializer, DownloadSerializer, UploadSerializer
 from .permissions import SoundPermission
-from .tasks.downloads import download_sound
+from .tasks.downloads import download_sound, upload_sound
 
 
 class SoundViewSet(
@@ -40,7 +42,7 @@ class SoundViewSet(
 
     # --- Custom Actions ---
 
-    @action(detail=False, methods=["get"])
+    @action(detail=False, methods=["get"], url_path="all")
     def list_all(self, request):
         serializer = self.get_serializer(self.get_queryset(), many=True)
         return Response(serializer.data)
@@ -77,6 +79,9 @@ class SoundViewSet(
         return Response({"detail": f"Removed {sound.name}."}, status=status.HTTP_200_OK)
 
 
+# --- File Actions ---
+
+
 @api_view(["POST"])
 def download(request):
     serializer = DownloadSerializer(data=request.data)
@@ -87,5 +92,28 @@ def download(request):
 
     return Response(
         {"detail": "Download task started.", "task_id": task.id},
+        status=status.HTTP_202_ACCEPTED,
+    )
+
+
+@api_view(["POST"])
+@parser_classes([MultiPartParser, FormParser])
+def upload(request):
+    serializer = UploadSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    validated_file = serializer.validated_data["file"]
+
+    try:
+        path = default_storage.save(validated_file.name, validated_file)
+    except Exception as error:
+        return Response(
+            {"detail": f"Error saving file: {error}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+    task = upload_sound.delay(request.user.id, path, validated_file.name)
+
+    return Response(
+        {"detail": "Upload task started.", "task_id": task.id},
         status=status.HTTP_202_ACCEPTED,
     )
