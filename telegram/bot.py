@@ -1,8 +1,8 @@
 # -- IMPORTS --
 import requests
+from pathlib import Path
 import os
 from uuid import uuid4
-import logging
 from telegram import (
     InlineQueryResultArticle,
     InputTextMessageContent,
@@ -19,9 +19,9 @@ from templates import not_found_answer, error_answer
 
 # -- ENV --
 BOT_TOKEN = os.environ["BOT_TOKEN"]
-BOT_LIST_URL = os.environ["BOT_LIST_URL"]
+BOT_API_URL = os.environ["BOT_API_URL"]
 BOT_API_KEY = os.environ["BOT_API_KEY"]
-
+CLOUDFLARE_TEMP_URL = os.environ["TEMP_URL"]
 
 # -- COMMANDS --
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -33,18 +33,16 @@ async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     user_id = update.effective_user.id
 
     response = requests.post(
-        BOT_LIST_URL,
+        BOT_API_URL + "sounds/",
         json={"telegram_id": user_id},
         headers={"Authorization": f"Bot {BOT_API_KEY}"},
     )
-
-    logging.info(response.json)
 
     if response.status_code == 200:
         sounds = response.json()
         answer = InlineQueryResultArticle(
             id=str(uuid4()),
-            title="test",
+            title=CLOUDFLARE_TEMP_URL,
             input_message_content=InputTextMessageContent(str(sounds)),
         )
     elif response.status_code == 404:

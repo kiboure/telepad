@@ -2,6 +2,8 @@
 import os
 from yt_dlp import YoutubeDL
 
+from telepad.settings import MEDIA_ROOT
+
 
 # -- HELPERS --
 class LargeSizeError(Exception):
@@ -48,7 +50,7 @@ def download_and_convert(url: str, user_id: int, max_size: int = 5) -> str:
             "-ac",
             "1",
         ],
-        "outtmpl": os.path.join("media", f"{user_id}_%(title)s.ogg"),
+        "outtmpl": os.path.join(MEDIA_ROOT, f"{user_id}_%(title)s.ogg"),
         "quiet": True,
         "noplaylist": True,
     }

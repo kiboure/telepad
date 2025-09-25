@@ -42,7 +42,6 @@ services:
       - db
       - redis
       - web
-
   bot:
     build: .
     command: python bot.py

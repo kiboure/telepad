@@ -4,12 +4,12 @@ from . import views
 from .botviews import BotListView
 
 router = DefaultRouter()
-router.register(r"", views.SoundViewSet, basename="sound")
+router.register(r"sounds", views.SoundViewSet, basename="sound")
 
 urlpatterns = [
-    path("download/", views.download, name="download"),
-    path("upload/", views.upload, name="upload"),
-    path("bot/", BotListView.as_view(), name="bot-list"),
+    path("sounds/download/", views.download, name="download"),
+    path("sounds/upload/", views.upload, name="upload"),
+    path("bot/sounds/", BotListView.as_view(), name="bot-sounds"),
 ]
 
 urlpatterns += router.urls 

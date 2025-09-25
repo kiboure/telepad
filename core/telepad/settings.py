@@ -13,9 +13,12 @@ env = environ.Env(
 environ.Env.read_env(BASE_DIR.parent / ".env")
 
 SECRET_KEY = env("DJANGO_SECRET_KEY")
-DEBUG = env.bool("DJANGO_DEBUG", default=False)
-ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost"])
+DEBUG = env.bool("DJANGO_DEBUG")
+ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS")
 BOT_API_KEY = env("BOT_API_KEY")
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.trycloudflare.com",
+]
 
 # -- APPLICATIONS --
 INSTALLED_APPS = [

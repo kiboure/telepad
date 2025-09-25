@@ -23,7 +23,7 @@ class BotListView(APIView):
         except User.DoesNotExist:
             return Response(
                 {"detail": "User not found."},
-                status=status.HTTP_404_BAD_REQUEST,
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         queryset = Sound.objects.filter(Q(owner=user) | Q(saves=user)).order_by("-id")

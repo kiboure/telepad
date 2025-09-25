@@ -4,6 +4,7 @@ import logging
 from celery import shared_task
 from app.models import Sound
 from app.downloader import download_and_convert
+from telepad.settings import MEDIA_ROOT
 from users.models import User
 
 
@@ -41,7 +42,7 @@ def upload_sound(user_id: int, temp_file, filename):
         return {"error": "User not found."}
 
     basename, _ = os.path.splitext(filename)
-    output_file = os.path.join("media", f"{basename}.ogg")
+    output_file = os.path.join(MEDIA_ROOT, f"{basename}.ogg")
 
     command = [
         "ffmpeg",
