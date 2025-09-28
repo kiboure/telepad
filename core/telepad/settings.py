@@ -15,6 +15,7 @@ environ.Env.read_env(BASE_DIR.parent / ".env")
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env.bool("DJANGO_DEBUG")
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS")
+ALLOWED_HOSTS.append(env("CLOUDFLARE_TEMP"))
 BOT_API_KEY = env("BOT_API_KEY")
 CSRF_TRUSTED_ORIGINS = [
     "https://*.trycloudflare.com",
@@ -23,7 +24,6 @@ CSRF_TRUSTED_ORIGINS = [
 # -- APPLICATIONS --
 INSTALLED_APPS = [
     # Django defaults
-    # "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
