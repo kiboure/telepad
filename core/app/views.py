@@ -5,7 +5,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import viewsets, permissions, status, mixins
 from rest_framework.decorators import action, api_view, parser_classes
 
-from django.db.models import Count, Q, OuterRef, Exists
+from django.db.models import Count, Exists, OuterRef
 from django.core.files.storage import default_storage
 
 from .models import Sound
@@ -35,16 +35,17 @@ class SoundViewSet(
     # --- Quering Methods ---
     def get_queryset(self):
         user = self.request.user
-        foreign_filter = Q(saves=user) if self.action == "list" else Q(is_private=False)
+        qs = None
 
-        return (
-            Sound.objects.filter(Q(owner=user) | foreign_filter)
-            .annotate(
+        if self.action == "list":
+            qs = Sound.objects.filter(owner=user).annotate(likes_count=Count("likes"))
+        else:
+            qs = Sound.objects.filter(is_private=False).annotate(
                 likes_count=Count("likes"),
                 is_saved=Exists(user.saved_sounds.filter(pk=OuterRef("pk"))),
             )
-            .order_by("-id")
-        )
+
+        return qs.order_by("-id")
 
     # --- Other ---
     def get_serializer_context(self):
