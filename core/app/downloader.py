@@ -38,9 +38,10 @@ def download_and_convert(url: str, user_tg_id: int) -> str:
     info = get_metadata(url)
     filesize = get_filesize(info)
     if filesize and (filesize / 1024 / 1024) > MAX_FILESIZE_MB:
-        return LargeSizeError(f"Estimated file size exceeds {MAX_FILESIZE_MB}MB.")
+        raise LargeSizeError(f"Estimated file size exceeds {MAX_FILESIZE_MB}MB.")
     ydl_opts = {
-        "format": "bestaudio/best",
+        "format": "bestaudio",
+        "max-filesize": f"{MAX_FILESIZE_MB*2}M",
         "restrictfilenames": True,
         "outtmpl": os.path.join(MEDIA_ROOT, f"temp_{user_tg_id}_%(title)s.%(ext)s"),
         "quiet": True,

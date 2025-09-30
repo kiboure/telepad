@@ -1,8 +1,10 @@
 # -- IMPORTS --
+from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import viewsets, permissions, status, mixins
 from rest_framework.decorators import action, api_view, parser_classes
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.response import Response
+
 from django.db.models import Count, Q, OuterRef, Exists
 from django.core.files.storage import default_storage
 
@@ -10,6 +12,13 @@ from .models import Sound
 from .serializers import SoundSerializer, DownloadSerializer, UploadSerializer
 from .permissions import SoundPermission
 from .tasks.downloads import download_sound, upload_sound
+
+
+# -- PAGINATION --
+class Pagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = "page_size"
+    max_page_size = 100
 
 
 # -- SOUNDS MODEL --
@@ -20,10 +29,10 @@ class SoundViewSet(
     viewsets.GenericViewSet,
 ):
     serializer_class = SoundSerializer
+    pagination_class = Pagination
     permission_classes = (permissions.IsAuthenticated, SoundPermission)
 
     # --- Quering Methods ---
-
     def get_queryset(self):
         user = self.request.user
         foreign_filter = Q(saves=user) if self.action == "list" else Q(is_private=False)
@@ -38,14 +47,15 @@ class SoundViewSet(
         )
 
     # --- Other ---
-
     def get_serializer_context(self):
         return {"request": self.request}
 
     @action(detail=False, methods=["get"], url_path="all")
     def list_all(self, request):
-        serializer = self.get_serializer(self.get_queryset(), many=True)
-        return Response(serializer.data)
+        qs = self.get_queryset()
+        page = self.paginate_queryset(qs)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     # --- Likes ---
     @action(detail=True, methods=["post"])
