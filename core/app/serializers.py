@@ -2,7 +2,6 @@ from rest_framework import serializers
 from taggit.serializers import TagListSerializerField, TaggitSerializer
 
 from .models import Sound
-from .validators import validate_size
 
 
 class SoundSerializer(TaggitSerializer, serializers.ModelSerializer):
@@ -39,4 +38,3 @@ class DownloadSerializer(serializers.Serializer):
 
 class UploadSerializer(serializers.Serializer):
     file = serializers.FileField(required=True, allow_empty_file=False)
-    
