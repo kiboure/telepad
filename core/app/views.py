@@ -123,14 +123,14 @@ def upload(request):
     validated_file = serializer.validated_data["file"]
 
     try:
-        path = default_storage.save(validated_file.name, validated_file)
+        temp_file = default_storage.save(validated_file.name, validated_file)
     except Exception as error:
         return Response(
             {"method": "Upload", "detail": f"Error saving file: {error}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-    task = upload_sound.delay(request.user.id, path, validated_file.name)
+    task = upload_sound.delay(request.user.id, temp_file, validated_file.name)
 
     return Response(
         {"method": "Upload", "detail": "Task started", "task_id": task.id},
