@@ -1,8 +1,7 @@
 # -- IMPORTS --
-import requests
 import os
-from uuid import uuid4
-from telegram import InlineQueryResultCachedVoice, Update
+import requests
+from telegram import Update, constants
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -10,7 +9,7 @@ from telegram.ext import (
     InlineQueryHandler,
 )
 
-from templates import InlineTemplate
+from templates import InlineTemplate, MessageTemplate
 
 # -- ENV --
 BOT_TOKEN = os.environ["BOT_TOKEN"]
@@ -20,7 +19,9 @@ BOT_API_KEY = os.environ["BOT_API_KEY"]
 
 # -- COMMANDS --
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("Start msg")
+    await update.message.reply_text(
+        MessageTemplate.START, parse_mode=constants.ParseMode.HTML
+    )
 
 
 # -- INLINE --
@@ -36,19 +37,10 @@ async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         return
 
     sounds = response.json()
-
     if not sounds:
         answer = [InlineTemplate.NOT_FOUND]
     else:
-        answer = []
-        for sound in sounds:
-            answer.append(
-                InlineQueryResultCachedVoice(
-                    id=str(uuid4()),
-                    voice_file_id=sound["file_id"],
-                    title=sound["name"],
-                )
-            )
+        answer = [InlineTemplate.inline_sound(sound) for sound in sounds]
 
     await update.inline_query.answer(answer, cache_time=5)
 

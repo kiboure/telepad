@@ -1,13 +1,15 @@
 # -- IMPORTS --
+from uuid import uuid4
 from telegram import (
     InlineQueryResultArticle,
     InputTextMessageContent,
+    InlineQueryResultCachedVoice,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
 )
 
 
-# -- INLINE TEMPLATES --
+# -- TEMPLATES --
 class InlineTemplate:
     _add_sounds_button = InlineKeyboardButton(
         text="🎵 Add sounds",
@@ -27,4 +29,23 @@ class InlineTemplate:
         title="Oops! Error fetching sounds.",
         description="Try again later!",
         input_message_content=InputTextMessageContent("Sorry, something is broken..."),
+    )
+
+    def inline_sound(sound: dict) -> InlineQueryResultCachedVoice:
+        return InlineQueryResultCachedVoice(
+        id=str(uuid4()),
+        voice_file_id=sound["file_id"],
+        title=sound["name"],
+    )
+
+
+class MessageTemplate:
+    START = (
+        "💬 • Welcome!\n\n"
+        "🔎 • Type <b>@tlpadbot</b> in any chat\n"
+        "          to look for your sounds.\n\n"
+        "🔉 • Manage your sounds on\n"
+        "          <b>telepad.cc</b> or send any file or link\n"
+        "          to this chat.\n\n"
+        "💠 • Enjoy using <b>Telepad<\b>!"
     )
