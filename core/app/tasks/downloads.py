@@ -1,5 +1,6 @@
 # -- IMPORTS --
 import os
+import traceback
 from celery import shared_task
 
 from app.models import Sound
@@ -36,6 +37,7 @@ def download_sound(user_id: int, url: str):
             "name": sound.name,
         }
     except Exception as error:
+        traceback.print_exc()
         return {
             "status": "Failed",
             "detail": str(error),

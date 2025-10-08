@@ -18,7 +18,7 @@ ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS")
 BOT_API_KEY = env("BOT_API_KEY")
 
 CSRF_TRUSTED_ORIGINS = [
-    f"https://{host}" for host in ALLOWED_HOSTS if not host.startswith(("127.", "localhost"))
+    "https://api.telepad.cc", "https://telepad.cc"
 ]
 
 # -- APPLICATIONS --

@@ -2,9 +2,9 @@ from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Sound
-from .serializers import SoundSerializer
-from .permissions import IsBotPermission
+from app.models import Sound
+from app.serializers import SoundSerializer
+from app.permissions import IsBotPermission
 
 
 class BotListView(APIView):

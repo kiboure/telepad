@@ -22,7 +22,7 @@ class LargeSizeError(Exception):
 # -- HELPERS --
 def ydl_get_metadata(url: str) -> dict:
     ydl_opts = {
-        "format": "bestaudio",
+        "format": "bestaudio/bestvideo/best",
         "quiet": True,
         "noplaylist": True,
     }
@@ -52,12 +52,12 @@ def ffprobe_get_duration(filepath: str):
 # -- UTILS --
 def ydl_download(url: str, user_id: int) -> str:
     info = ydl_get_metadata(url)
-    filesize = info.get("filesize") | info.get("filesize_approx")
+    filesize = info.get("filesize") or info.get("filesize_approx")
     if filesize and (filesize / 1024 / 1024) > MAX_FILESIZE_MB:
         raise LargeSizeError(f"Estimated file size exceeds {MAX_FILESIZE_MB}MB.")
 
     ydl_opts = {
-        "format": "bestaudio",
+        "format": "bestaudio/bestvideo/best",
         "max-filesize": f"{MAX_FILESIZE_MB * 2}M",
         "restrictfilenames": True,
         "outtmpl": os.path.join(MEDIA_ROOT, f"temp/{user_id}_%(title)s.%(ext)s"),
