@@ -12,6 +12,7 @@ class Sound(models.Model):
         related_name="sounds",
     )
     name = models.CharField(max_length=255)
+    file_path = models.FileField()
     file_id = models.CharField()
     duration = models.IntegerField()
     tags = TaggableManager(blank=True)

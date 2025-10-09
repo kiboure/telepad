@@ -21,7 +21,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=255)),
-                ('file_id', models.CharField()),
+                ('file_path', models.CharField(max_length=512)),
+                ('file_id', models.CharField(max_length=512)),
                 ('duration', models.IntegerField()),
                 ('is_private', models.BooleanField(default=True)),
                 ('is_active', models.BooleanField(default=True)),

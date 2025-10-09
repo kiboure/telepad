@@ -15,7 +15,7 @@ class SoundSerializer(TaggitSerializer, serializers.ModelSerializer):
             "id",
             "owner",
             "name",
-            "file_id",
+            "file_path",
             "duration",
             "tags",
             "likes_count",
@@ -25,7 +25,7 @@ class SoundSerializer(TaggitSerializer, serializers.ModelSerializer):
         read_only_fields = [
             "id",
             "owner",
-            "file_id",
+            "file_path",
             "duration",
             "likes_count",
             "is_saved",

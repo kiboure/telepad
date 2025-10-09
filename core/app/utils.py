@@ -83,8 +83,8 @@ def upload_to_telegram(path: str, title: str, duration: int) -> str | None:
         response = requests.post(API_URL, data=data, files=files, timeout=60)
         response.raise_for_status()
 
-    if path and os.path.exists(path):
-        os.remove(path)
+    # if path and os.path.exists(path):
+    #     os.remove(path)
 
     response = response.json()
     if response.get("ok"):

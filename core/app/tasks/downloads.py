@@ -16,8 +16,8 @@ def download_sound(user_id: int, url: str):
         title = info.get("title")
         duration = info.get("duration")
 
-        name = os.path.splitext(os.path.basename(temp_file))[0]
-        output_file = os.path.join(MEDIA_ROOT, f"{name}.ogg")
+        name = f"{os.path.splitext(os.path.basename(temp_file))[0]}.ogg"
+        output_file = os.path.join(MEDIA_ROOT, name)
         convert(temp_file, output_file)
 
         file_id = upload_to_telegram(output_file, title, duration)
@@ -25,6 +25,7 @@ def download_sound(user_id: int, url: str):
         sound = Sound.objects.create(
             owner_id=user_id,
             name=title,
+            file_path=name,
             file_id=file_id,
             duration=duration,
             is_private=True,
