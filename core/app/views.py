@@ -21,6 +21,8 @@ from .serializers import (
 from .permissions import SoundPermission
 from .tasks.downloads import download_sound, upload_sound
 from telepad.settings import MEDIA_ROOT
+from telepad.celery import app as celery_app
+from django.middleware.csrf import get_token
 
 
 # -- PAGINATION --
@@ -44,7 +46,14 @@ class SoundViewSet(
     # --- Queryset constructor ---
     def get_queryset(self):
         user = self.request.user
-        qs = Sound.objects.filter(is_active=True).annotate(likes_count=Count("likes"))
+        qs = (
+            Sound.objects.filter(is_active=True)
+            .annotate(
+                likes_count=Count("likes"),
+                is_saved=Exists(user.saved_sounds.filter(pk=OuterRef("pk"))),
+                is_liked=Exists(user.liked_sounds.filter(pk=OuterRef("pk"))),
+            )
+        )
 
         # Tags
         tag_names = self.request.query_params.getlist("tags")
@@ -62,9 +71,7 @@ class SoundViewSet(
         if self.action == "list":
             qs = qs.filter(saves=user)
         else:
-            qs = qs.filter(Q(owner=user) | Q(is_private=False)).annotate(
-                is_saved=Exists(user.saved_sounds.filter(pk=OuterRef("pk"))),
-            )
+            qs = qs.filter(Q(owner=user) | Q(is_private=False))
 
         return qs.order_by("-id")
 
@@ -170,3 +177,23 @@ def tags(request):
         serializer.data,
         status=status.HTTP_200_OK,
     )
+
+
+# -- TASKS STATUS --
+@api_view(["GET"])
+def task_status(request, task_id: str):
+    result = celery_app.AsyncResult(task_id)
+    payload = {
+        "task_id": task_id,
+        "state": result.state,
+        "status": str(result.info) if result.info else None,
+        "result": result.result if result.successful() else None,
+    }
+    return Response(payload, status=status.HTTP_200_OK)
+
+
+# -- CSRF --
+@api_view(["GET"])
+def csrf_token(request):
+    token = get_token(request)
+    return Response({"csrfToken": token}, status=status.HTTP_200_OK)

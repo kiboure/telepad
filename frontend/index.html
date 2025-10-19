@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Telepad</title>
+    <meta name="color-scheme" content="dark" />
+  </head>
+  <body class="bg-base-900 text-accent-300">
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+    <script>
+      window.onTelegramAuth = function(user) {
+        window.dispatchEvent(new CustomEvent('tg-auth', { detail: user }));
+      };
+    </script>
+  </body>
+  
+</html>

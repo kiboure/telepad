@@ -5,14 +5,11 @@ from .models import User
 class TelegramAuthSerializer(serializers.Serializer):
     telegram_id = serializers.IntegerField(required=True)
     username = serializers.CharField(required=False, allow_blank=True)
+    hash = serializers.CharField(required=False, allow_blank=True)
     # if needed: first_name = serializers.CharField(required=False)
     # if needed: last_name = serializers.CharField(required=False)
-    # probably would be nice: photo_url = serializers.URLField(required=False)
-    # after integrating telegram widget: hash = serializers.CharField(required=True)
 
     def validate(self, attrs):
-        # After integrating the telegram widget there should be hash validation
-
         telegram_id = attrs.get("telegram_id")
         username = attrs.get("username")
 
