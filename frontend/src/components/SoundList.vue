@@ -25,6 +25,11 @@
             <!-- pen icon -->
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
           </button>
+          <button @click="hideUnhide(s)" class="text-accent-300 hover:text-accent-200" :title="s.is_private? 'Make public' : 'Make private'">
+            <!-- globe for public, lock for private -->
+            <svg v-if="s.is_private" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </button>
           <button @click="confirmUnsave(s)" class="text-danger hover:opacity-90" title="Remove from Library">
             <!-- bookmark filled (indicates saved) -->
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h12a2 2 0 0 1 2 2v18l-8-4-8 4V4a2 2 0 0 1 2-2z"/></svg>
@@ -56,12 +61,14 @@
     </div>
   </div>
   <TagPicker :open="tagPickerOpen" :initialSelected="pendingTags" @apply="applyTags" @close="tagPickerOpen=false" />
+  <ConfirmModal :open="confirmOpen" :message="confirmMsg" @confirm="() => { confirmOpen=false; if (confirmAction) confirmAction() }" @cancel="() => { confirmOpen=false; confirmAction=null }" />
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import axios from 'axios'
 import TagPicker from './TagPicker.vue'
+import ConfirmModal from './ConfirmModal.vue'
 
 const props = defineProps<{ sounds: any[]; mode: 'library' | 'search'; hasMore?: boolean }>()
 const emit = defineEmits(['refresh', 'loadMore'])
@@ -96,6 +103,9 @@ const editingId = ref<number | null>(null)
 const editName = ref('')
 const pendingTags = ref<string[]>([])
 const tagPickerOpen = ref(false)
+const confirmOpen = ref(false)
+const confirmMsg = ref('')
+let confirmAction: null | (() => Promise<void> | void) = null
 
 function startEdit(s: any) {
   editingId.value = s.id
@@ -129,8 +139,13 @@ async function unsave(s: any) {
 async function saveUnsave(s: any) {
   const path = s.is_saved ? 'unsave' : 'save'
   if (path === 'unsave') {
-    const ok = window.confirm('Remove this sound?')
-    if (!ok) return
+    confirmMsg.value = 'Remove this sound?'
+    confirmAction = async () => {
+      await axios.post(`/api/sounds/${s.id}/${path}/`)
+      await emit('refresh')
+    }
+    confirmOpen.value = true
+    return
   }
   await axios.post(`/api/sounds/${s.id}/${path}/`)
   await emit('refresh')
@@ -138,6 +153,26 @@ async function saveUnsave(s: any) {
 
 function openTags(s: any) { tagPickerOpen.value = true }
 function applyTags(newTags: string[]) { pendingTags.value = newTags }
+
+function openConfirm(message: string, action: () => Promise<void> | void) {
+  confirmMsg.value = message
+  confirmAction = action
+  confirmOpen.value = true
+}
+
+async function hideUnhide(s: any) {
+  if (s.is_private) {
+    openConfirm('Make your sound public? Users who save the sound will still have it even if you hide it again.', async () => {
+      await axios.post(`/api/sounds/${s.id}/unhide/`)
+      await emit('refresh')
+    })
+  } else {
+    openConfirm('Make your sound private?', async () => {
+      await axios.post(`/api/sounds/${s.id}/hide/`)
+      await emit('refresh')
+    })
+  }
+}
 </script>
 
 <style scoped>

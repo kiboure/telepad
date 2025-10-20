@@ -133,6 +133,31 @@ class SoundViewSet(
             status=status.HTTP_200_OK,
         )
 
+    # --- Visibility ---
+    @action(detail=True, methods=["post"])
+    def hide(self, request, pk=None):
+        sound = self.get_object()
+        if sound.owner != request.user:
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+        sound.is_private = True
+        sound.save(update_fields=["is_private"])
+        return Response(
+            {"method": "Hide", "sound_name": sound.name},
+            status=status.HTTP_200_OK
+        )
+
+    @action(detail=True, methods=["post"])
+    def unhide(self, request, pk=None):
+        sound = self.get_object()
+        if sound.owner != request.user:
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+        sound.is_private = False
+        sound.save(update_fields=["is_private"])
+        return Response(
+            {"method": "Unhide", "sound_name": sound.name},
+            status=status.HTTP_200_OK
+        )
+
 
 # -- SOUND FILES --
 @api_view(["POST"])
