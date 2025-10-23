@@ -52,4 +52,4 @@ class TelegramAuthSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "telegram_id", "username", "first_name")
+        fields = ("id", "telegram_id", "username", "telegram_name")
