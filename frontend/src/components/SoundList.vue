@@ -78,7 +78,12 @@ const playing = ref(false)
 audio.onended = () => { playing.value = false }
 
 function urlFor(s: any) {
-  return s.file_path?.startsWith('http') ? s.file_path : `/media/${s.file_path}`
+  const raw = s.file_path?.startsWith('http') ? s.file_path : `/media/${s.file_path}`
+  try {
+    const u = new URL(raw, window.location.origin)
+    if (u.protocol === 'http:') u.protocol = 'https:'
+    return u.toString()
+  } catch { return raw }
 }
 
 function togglePlay(s: any) {

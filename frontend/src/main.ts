@@ -11,6 +11,17 @@ const pinia = createPinia()
 app.use(pinia)
 try { const auth = useAuth(pinia); auth.init() } catch {}
 
+axios.interceptors.request.use((config) => {
+  try {
+    const u = typeof config.url === 'string' ? new URL(config.url, window.location.origin) : null
+    if (u && u.protocol === 'http:') {
+      u.protocol = 'https:'
+      config.url = u.toString()
+    }
+  } catch {}
+  return config
+})
+
 try {
   const params = new URLSearchParams(window.location.search)
   const id = params.get('id')
