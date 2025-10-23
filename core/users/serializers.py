@@ -39,8 +39,9 @@ class TelegramAuthSerializer(serializers.Serializer):
         if telegram_id is None:
             raise serializers.ValidationError({"error": "Missing Telegram id."})
         username = attrs.get("username") or attrs.get("first_name")
+        first_name = attrs.get("first_name")
         user, created = User.objects.update_or_create(
-            telegram_id=int(telegram_id), defaults={"username": username}
+            telegram_id=int(telegram_id), defaults={"username": username, "telegram_name": first_name}
         )
 
         attrs["user"] = user
@@ -51,4 +52,4 @@ class TelegramAuthSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "telegram_id", "username", "is_active")
+        fields = ("id", "telegram_id", "username", "first_name")
