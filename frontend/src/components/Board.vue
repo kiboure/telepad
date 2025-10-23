@@ -124,7 +124,8 @@ async function handleFiles(fileList: FileList) {
     showToast('Unsupported file type. Please choose an audio or video file.')
     return
   }
-  const maxMb = 20
+  const envMax = Number(import.meta.env.VITE_MAX_FILESIZE_MB)
+  const maxMb = Number.isFinite(envMax) && envMax > 0 ? envMax : 20
   const sizeMb = file.size / 1024 / 1024
   if (sizeMb > maxMb) {
     showToast(`File exceeds the maximum size of ${maxMb}MB.`)
