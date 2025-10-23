@@ -37,7 +37,6 @@
       <SoundList :mode="mode" :sounds="sounds" @loadMore="loadMore" @refresh="refresh" />
       <div v-if="!sounds.length" class="text-center text-accent-400 py-12">No results</div>
     </div>
-    <!-- Drag overlay -->
     <div v-show="isDragging" class="absolute inset-0 bg-black/40 rounded-xl grid place-items-center pointer-events-none">
       <div class="flex flex-col items-center gap-3 text-accent-300">
         <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -50,9 +49,8 @@
     </div>
   </div>
 
-  <!-- Toast -->
   <div v-if="toastMessage" class="fixed inset-x-0 bottom-24 flex justify-center z-[60] pointer-events-none">
-    <div class="pointer-events-auto bg-base-700/90 text-accent-300 rounded-lg shadow-2xl px-4 py-2">
+    <div class="pointer-events-auto bg-[#ca404dcc] text-accent-300 rounded-lg shadow-2xl px-4 py-2">
       {{ toastMessage }}
     </div>
   </div>

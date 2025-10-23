@@ -5,7 +5,7 @@ type TGLogin = { telegram_id: number; username?: string }
 
 export const useAuth = defineStore('auth', {
   state: () => ({
-    user: null as null | { id: number; telegram_id: number; username?: string },
+    user: null as null | { id: number; telegram_id: number; username?: string; first_name?: string },
     access: null as string | null,
     refresh: null as string | null,
     loading: false,

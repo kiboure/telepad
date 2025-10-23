@@ -12,7 +12,6 @@
         <template v-if="isAuthed">
           <Toggle v-model="mode" />
           <Board :mode="mode" />
-          <!-- Help hint -->
           <div class="fixed inset-x-0 bottom-6 flex justify-center pointer-events-none">
             <div class="pointer-events-auto group relative flex items-center gap-2 bg-base-700/80 backdrop-blur rounded-xl shadow-2xl px-3 py-2 text-accent-300 cursor-pointer"
                  @mouseenter="showHelp = true" @mouseleave="showHelp = false" @click="showHelp = !showHelp" tabindex="0" role="button" aria-label="How to use sounds help">
@@ -20,7 +19,6 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
               </div>
               <div class="text-base">How to use sounds?</div>
-              <!-- Floating message -->
               <div v-show="showHelp" class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 bg-base-800 rounded-lg shadow-2xl px-3 py-2 text-sm text-accent-300 whitespace-pre-line w-[min(90vw,520px)]">
                 To use your created or saved sounds, open any chat in Telegram and type @tlpadbot. Your sounds will appear above the keyboard.
               </div>
