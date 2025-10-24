@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import axios from 'axios'
 import TagPicker from './TagPicker.vue'
 import ConfirmModal from './ConfirmModal.vue'
@@ -111,9 +111,16 @@ const confirmOpen = ref(false)
 const confirmMsg = ref('')
 let confirmAction: null | (() => Promise<void> | void) = null
 
-// Current user for ownership checks
 const auth = useAuth()
 const currentUserId = computed(() => auth.user?.id)
+
+watch(() => props.mode, () => {
+  if (playing.value) {
+    audio.pause()
+    playing.value = false
+    current.value = null
+  }
+})
 
 function startEdit(s: any) {
   editingId.value = s.id
