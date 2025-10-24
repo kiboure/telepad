@@ -26,13 +26,26 @@ services:
     networks:
       - default_network
        
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    volumes:
+      - frontend_data:/shared/frontend
+    networks:
+      - default_network
+
   nginx:
-    build: ./frontend
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
     volumes:
       - ./media:/media
       - ./static:/static
+      - frontend_data:/usr/share/nginx/html
     depends_on:
       - web
+      - frontend
     networks:
       default_network:
         aliases:
@@ -79,6 +92,7 @@ services:
       
 volumes:
   db_data:
+  frontend_data:
 
 networks:
   default_network:
