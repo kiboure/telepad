@@ -72,7 +72,7 @@ const props = defineProps<{ sounds: any[]; mode: 'library' | 'search'; hasMore?:
 const emit = defineEmits(['refresh', 'loadMore'])
 
 const audio = new Audio()
-audio.volume = 0.35
+audio.volume = 0.2
 const current = ref<any | null>(null)
 const playing = ref(false)
 audio.onended = () => { playing.value = false }
