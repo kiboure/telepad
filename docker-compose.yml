@@ -32,6 +32,8 @@ services:
       dockerfile: Dockerfile.frontend
     volumes:
       - frontend_data:/shared/frontend
+    depends_on:
+      - web
     networks:
       - default_network
 
@@ -73,8 +75,7 @@ services:
       - ./telegram:/app
     env_file: .env
     depends_on:
-      - redis
-      - db
+      - web
     networks:
       - default_network
 
