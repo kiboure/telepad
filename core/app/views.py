@@ -9,6 +9,7 @@ from rest_framework.decorators import action, api_view, parser_classes
 
 from django.db.models import Count, Exists, Q, OuterRef
 from django.core.files.storage import default_storage
+import random
 from taggit.models import Tag
 
 from .models import Sound
@@ -21,6 +22,8 @@ from .serializers import (
 from .permissions import SoundPermission
 from .tasks.downloads import download_sound, upload_sound
 from telepad.settings import MEDIA_ROOT
+from telepad.celery import app as celery_app
+from django.middleware.csrf import get_token
 
 
 # -- PAGINATION --
@@ -28,6 +31,11 @@ class Pagination(PageNumberPagination):
     page_size = 20
     page_size_query_param = "page_size"
     max_page_size = 100
+# -- TAG PAGINATION --
+class TagPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = None
+    max_page_size = 10
 
 
 # -- SOUNDS MODEL --
@@ -44,7 +52,14 @@ class SoundViewSet(
     # --- Queryset constructor ---
     def get_queryset(self):
         user = self.request.user
-        qs = Sound.objects.filter(is_active=True).annotate(likes_count=Count("likes"))
+        qs = (
+            Sound.objects.filter(is_active=True)
+            .annotate(
+                likes_count=Count("likes"),
+                is_saved=Exists(user.saved_sounds.filter(pk=OuterRef("pk"))),
+                is_liked=Exists(user.liked_sounds.filter(pk=OuterRef("pk"))),
+            )
+        )
 
         # Tags
         tag_names = self.request.query_params.getlist("tags")
@@ -56,15 +71,13 @@ class SoundViewSet(
         # Searching
         search = self.request.query_params.get("search")
         if search:
-            qs = qs.filter(name__icontains=search)
+            qs = qs.filter(name__icontains=search.strip())
 
         # Access
         if self.action == "list":
             qs = qs.filter(saves=user)
         else:
-            qs = qs.filter(Q(owner=user) | Q(is_private=False)).annotate(
-                is_saved=Exists(user.saved_sounds.filter(pk=OuterRef("pk"))),
-            )
+            qs = qs.filter(Q(owner=user) | Q(is_private=False))
 
         return qs.order_by("-id")
 
@@ -121,6 +134,31 @@ class SoundViewSet(
             status=status.HTTP_200_OK,
         )
 
+    # --- Visibility ---
+    @action(detail=True, methods=["post"])
+    def hide(self, request, pk=None):
+        sound = self.get_object()
+        if sound.owner != request.user:
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+        sound.is_private = True
+        sound.save(update_fields=["is_private"])
+        return Response(
+            {"method": "Hide", "sound_name": sound.name},
+            status=status.HTTP_200_OK
+        )
+
+    @action(detail=True, methods=["post"])
+    def unhide(self, request, pk=None):
+        sound = self.get_object()
+        if sound.owner != request.user:
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+        sound.is_private = False
+        sound.save(update_fields=["is_private"])
+        return Response(
+            {"method": "Unhide", "sound_name": sound.name},
+            status=status.HTTP_200_OK
+        )
+
 
 # -- SOUND FILES --
 @api_view(["POST"])
@@ -143,9 +181,11 @@ def upload(request):
     serializer = UploadSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     validated_file = serializer.validated_data["file"]
+    base, ext = os.path.splitext(os.path.basename(validated_file.name))
+    filename = f"{request.user.id}_{base}_{random.randint(1000, 9999)}{ext}"
 
     try:
-        temp_name = default_storage.save(validated_file.name, validated_file)
+        temp_name = default_storage.save(f"temp/{filename}", validated_file)
         temp_file = os.path.join(MEDIA_ROOT, temp_name)
     except Exception as error:
         return Response(
@@ -153,7 +193,7 @@ def upload(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-    task = upload_sound.delay(request.user.id, temp_file, validated_file.name)
+    task = upload_sound.delay(request.user.id, temp_file, filename)
 
     return Response(
         {"method": "Upload", "detail": "Task started", "task_id": task.id},
@@ -164,9 +204,32 @@ def upload(request):
 # -- TAGS --
 @api_view(["GET"])
 def tags(request):
-    tags_queryset = Tag.objects.all()
-    serializer = TagSerializer(tags_queryset, many=True)
-    return Response(
-        serializer.data,
-        status=status.HTTP_200_OK,
-    )
+    qs = Tag.objects.all()
+    search = request.query_params.get("search")
+    if search:
+        qs = qs.filter(name__icontains=search)
+
+    paginator = TagPagination()
+    page = paginator.paginate_queryset(qs.order_by("name"), request)
+    serializer = TagSerializer(page, many=True)
+    return paginator.get_paginated_response(serializer.data)
+
+
+# -- TASKS STATUS --
+@api_view(["GET"])
+def task_status(request, task_id: str):
+    result = celery_app.AsyncResult(task_id)
+    payload = {
+        "task_id": task_id,
+        "state": result.state,
+        "status": str(result.info) if result.info else None,
+        "result": result.result if result.successful() else None,
+    }
+    return Response(payload, status=status.HTTP_200_OK)
+
+
+# -- CSRF --
+@api_view(["GET"])
+def csrf_token(request):
+    token = get_token(request)
+    return Response({"csrfToken": token}, status=status.HTTP_200_OK)

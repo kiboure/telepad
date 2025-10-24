@@ -1,5 +1,6 @@
 # -- IMPORTS --
 import os
+import random
 import requests
 import subprocess
 from yt_dlp import YoutubeDL
@@ -45,7 +46,7 @@ def ffprobe_get_duration(filepath: str):
 
     output = subprocess.run(command, check=True, capture_output=True, text=True)
     duration = int(float(output.stdout.strip()))
-
+    
     return duration
 
 
@@ -58,9 +59,8 @@ def ydl_download(url: str, user_id: int) -> str:
 
     ydl_opts = {
         "format": "bestaudio/bestvideo/best",
-        "max-filesize": f"{MAX_FILESIZE_MB * 2}M",
-        "restrictfilenames": True,
-        "outtmpl": os.path.join(MEDIA_ROOT, f"temp/{user_id}_%(title)s.%(ext)s"),
+        "max-filesize": f"{MAX_FILESIZE_MB}M",
+        "outtmpl": os.path.join(MEDIA_ROOT, f"temp/{user_id}_%(title)s_{random.randint(1000, 9999)}.%(ext)s"),
         "quiet": True,
         "noplaylist": True,
     }
@@ -82,9 +82,6 @@ def upload_to_telegram(path: str, title: str, duration: int) -> str | None:
         }
         response = requests.post(API_URL, data=data, files=files, timeout=60)
         response.raise_for_status()
-
-    # if path and os.path.exists(path):
-    #     os.remove(path)
 
     response = response.json()
     if response.get("ok"):

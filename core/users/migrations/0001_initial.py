@@ -39,6 +39,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("telegram_id", models.BigIntegerField(unique=True)),
+                ("first_name", models.CharField(max_length=255)),
                 ("username", models.CharField(blank=True, max_length=255, null=True)),
                 ("is_active", models.BooleanField(default=True)),
                 (

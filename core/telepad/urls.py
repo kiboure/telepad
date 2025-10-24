@@ -5,7 +5,7 @@ from . import settings
 urlpatterns = [
     path("", include(("users.urls", "users"), namespace="users")),
     path("", include(("app.urls", "app"), namespace="app")),
-    path("", include(("app.bot_api.urls", "app"), namespace="bot_api")),
+    path("bot/", include(("app.bot_api.urls", "app"), namespace="bot_api")),
 ]
 
 if settings.DEBUG:

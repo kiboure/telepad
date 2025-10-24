@@ -13,6 +13,10 @@ class SoundPermission(permissions.BasePermission):
         if view.action in ["like", "unlike", "save", "unsave"]:
             return not obj.is_private or obj.owner == request.user
 
+        # Allow owner to toggle visibility
+        if view.action in ["hide", "unhide"]:
+            return obj.owner == request.user
+
         return False
 
 
