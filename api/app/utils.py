@@ -22,6 +22,9 @@ class LargeSizeError(Exception):
 
 # -- HELPERS --
 def ydl_get_metadata(url: str) -> dict:
+    if not url or not isinstance(url, str):
+        raise ValueError("Invalid URL provided")
+    
     ydl_opts = {
         "format": "bestaudio/bestvideo/best",
         "quiet": True,
@@ -33,6 +36,9 @@ def ydl_get_metadata(url: str) -> dict:
 
 
 def ffprobe_get_duration(filepath: str):
+    if not filepath or not os.path.exists(filepath):
+        raise ValueError("Invalid filepath provided")
+    
     command = [
         "ffprobe",
         "-v",
@@ -73,6 +79,9 @@ def ydl_download(url: str, user_id: int) -> str:
 
 
 def upload_to_telegram(path: str, title: str, duration: int) -> str | None:
+    if not path or not os.path.exists(path):
+        raise ValueError("Invalid path provided")
+
     with open(path, "rb") as voice_file:
         files = {"voice": (os.path.basename(path), voice_file, "audio/ogg")}
         data = {
@@ -94,6 +103,9 @@ def upload_to_telegram(path: str, title: str, duration: int) -> str | None:
 
 
 def convert(input_file: str, output_file: str):
+    if not input_file or not os.path.exists(input_file):
+        raise ValueError("Invalid input_file provided")
+    
     command = [
         "ffmpeg",
         "-y",
@@ -115,7 +127,7 @@ def convert(input_file: str, output_file: str):
         "-application",
         "voip",
         output_file,
-]
+    ]
 
     subprocess.run(command, check=True, capture_output=True, text=True)
 
