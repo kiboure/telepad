@@ -29,7 +29,9 @@ class LoginAPIView(generics.GenericAPIView):
             "created": created,
         }
 
-        return Response(data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+        return Response(
+            data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
+        )
 
 
 class LogoutAPIView(views.APIView):

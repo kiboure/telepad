@@ -31,6 +31,8 @@ class Pagination(PageNumberPagination):
     page_size = 20
     page_size_query_param = "page_size"
     max_page_size = 100
+
+
 # -- TAG PAGINATION --
 class TagPagination(PageNumberPagination):
     page_size = 10
@@ -52,13 +54,10 @@ class SoundViewSet(
     # --- Queryset constructor ---
     def get_queryset(self):
         user = self.request.user
-        qs = (
-            Sound.objects.filter(is_active=True)
-            .annotate(
-                likes_count=Count("likes"),
-                is_saved=Exists(user.saved_sounds.filter(pk=OuterRef("pk"))),
-                is_liked=Exists(user.liked_sounds.filter(pk=OuterRef("pk"))),
-            )
+        qs = Sound.objects.filter(is_active=True).annotate(
+            likes_count=Count("likes"),
+            is_saved=Exists(user.saved_sounds.filter(pk=OuterRef("pk"))),
+            is_liked=Exists(user.liked_sounds.filter(pk=OuterRef("pk"))),
         )
 
         # Tags
@@ -141,8 +140,7 @@ class SoundViewSet(
         sound.is_private = True
         sound.save(update_fields=["is_private"])
         return Response(
-            {"method": "Hide", "sound_name": sound.name},
-            status=status.HTTP_200_OK
+            {"method": "Hide", "sound_name": sound.name}, status=status.HTTP_200_OK
         )
 
     @action(detail=True, methods=["post"])
@@ -153,8 +151,7 @@ class SoundViewSet(
         sound.is_private = False
         sound.save(update_fields=["is_private"])
         return Response(
-            {"method": "Unhide", "sound_name": sound.name},
-            status=status.HTTP_200_OK
+            {"method": "Unhide", "sound_name": sound.name}, status=status.HTTP_200_OK
         )
 
 

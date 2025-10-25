@@ -13,7 +13,9 @@ class UserManager(BaseUserManager):
         if not first_name:
             raise ValueError("first_name is required.")
 
-        user = self.model(telegram_id=telegram_id, username=username, first_name=first_name)
+        user = self.model(
+            telegram_id=telegram_id, username=username, first_name=first_name
+        )
         user.set_unusable_password()
         user.save(using=self._db)
 

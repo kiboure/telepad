@@ -7,6 +7,7 @@ from .models import Sound
 
 MAX_FILESIZE_MB = int(os.environ["MAX_FILESIZE_MB"])
 
+
 class SoundSerializer(TaggitSerializer, serializers.ModelSerializer):
     tags = TagListSerializerField(required=False)
     likes_count = serializers.IntegerField(read_only=True)
@@ -52,18 +53,34 @@ class DownloadSerializer(serializers.Serializer):
 
 class UploadSerializer(serializers.Serializer):
     file = serializers.FileField(required=True, allow_empty_file=False)
-    
+
     def validate_file(self, value):
         max_size = MAX_FILESIZE_MB * 1024 * 1024
         if value.size > max_size:
-            raise serializers.ValidationError(f"File size exceeds {MAX_FILESIZE_MB}MB limit")
-        
-        allowed_exts = ('mp3','wav','ogg','oga','opus','m4a','aac','flac','mp4','m4v','webm','mov','avi')
+            raise serializers.ValidationError(
+                f"File size exceeds {MAX_FILESIZE_MB}MB limit"
+            )
+
+        allowed_exts = (
+            "mp3",
+            "wav",
+            "ogg",
+            "oga",
+            "opus",
+            "m4a",
+            "aac",
+            "flac",
+            "mp4",
+            "m4v",
+            "webm",
+            "mov",
+            "avi",
+        )
         file_ext = value.name.rsplit(".")[-1]
 
         if file_ext not in allowed_exts:
             raise serializers.ValidationError(f"Unsupported file type: {file_ext}")
-        
+
         return value
 
 

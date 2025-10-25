@@ -31,7 +31,9 @@ class TelegramAuthSerializer(serializers.Serializer):
         data_check_string = "\n".join([f"{key}={value}" for key, value in pairs])
 
         secret = hashlib.sha256(bot_token.encode()).digest()
-        computed = hmac.new(secret, data_check_string.encode(), hashlib.sha256).hexdigest()
+        computed = hmac.new(
+            secret, data_check_string.encode(), hashlib.sha256
+        ).hexdigest()
         if computed != auth_hash:
             raise serializers.ValidationError({"error": "Could not validate hash."})
 
@@ -41,7 +43,8 @@ class TelegramAuthSerializer(serializers.Serializer):
         username = attrs.get("username") or attrs.get("first_name")
         first_name = attrs.get("first_name")
         user, created = User.objects.update_or_create(
-            telegram_id=int(telegram_id), defaults={"username": username, "first_name": first_name}
+            telegram_id=int(telegram_id),
+            defaults={"username": username, "first_name": first_name},
         )
 
         attrs["user"] = user
