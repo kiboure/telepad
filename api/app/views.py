@@ -64,9 +64,7 @@ class SoundViewSet(
         # Tags
         tag_names = self.request.query_params.getlist("tags")
         if tag_names:
-            for tag in tag_names:
-                qs = qs.filter(tags__name=tag)
-            qs = qs.distinct()
+            qs = qs.filter(tags__name__in=tag_names).distinct()
 
         # Searching
         search = self.request.query_params.get("search")
@@ -207,7 +205,7 @@ def tags(request):
     qs = Tag.objects.all()
     search = request.query_params.get("search")
     if search:
-        qs = qs.filter(name__icontains=search)
+        qs = qs.filter(name__icontains=search.strip())
 
     paginator = TagPagination()
     page = paginator.paginate_queryset(qs.order_by("name"), request)

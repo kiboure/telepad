@@ -13,7 +13,7 @@ class Sound(models.Model):
     )
     name = models.CharField(max_length=255)
     file_path = models.FileField()
-    file_id = models.CharField()
+    file_id = models.CharField(max_length=255)
     duration = models.IntegerField()
     tags = TaggableManager(blank=True)
     likes = models.ManyToManyField(
