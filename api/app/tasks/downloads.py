@@ -14,11 +14,12 @@ def download_sound(user_id: int, url: str):
     try:
         temp_file, info = ydl_download(url, user_id)
         title = info.get("title")
-        duration = info.get("duration") or ffprobe_get_duration(temp_file)
-
+    
         name = f"{os.path.splitext(os.path.basename(temp_file))[0]}.ogg"
         output_file = os.path.join(MEDIA_ROOT, name)
         convert(temp_file, output_file)
+
+        duration = ffprobe_get_duration(output_file)
 
         file_id = upload_to_telegram(output_file, title, duration)
 
@@ -49,10 +50,10 @@ def download_sound(user_id: int, url: str):
 def upload_sound(user_id: int, temp_file: str, filename: str):
     basename, _ = os.path.splitext(os.path.basename(filename))
     output_file = os.path.join(MEDIA_ROOT, f"{basename}.ogg")
-    duration = ffprobe_get_duration(temp_file)
 
     try:
         convert(temp_file, output_file)
+        duration = ffprobe_get_duration(output_file)
         file_id = upload_to_telegram(output_file, basename, duration)
 
         sound = Sound.objects.create(

@@ -99,13 +99,15 @@ def convert(input_file: str, output_file: str):
         "-y",
         "-i",
         input_file,
+        "-t",
+        "120",
         "-vn",
         "-c:a",
         "libopus",
         "-b:a",
         "64k",
         "-vbr",
-        "on",
+        "off",
         "-compression_level",
         "10",
         "-frame_duration",
@@ -113,7 +115,7 @@ def convert(input_file: str, output_file: str):
         "-application",
         "voip",
         output_file,
-    ]
+]
 
     subprocess.run(command, check=True, capture_output=True, text=True)
 
