@@ -74,7 +74,15 @@ def ydl_download(url: str, user_id: int) -> str:
     with YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
         file = ydl.prepare_filename(info)
+    
+    directory, filename = os.path.split(file)
+    clean_name = filename.replace(" ", "_")
 
+    if filename != clean_name:
+        new_file = os.path.join(directory, clean_name)
+        os.rename(file, new_file)
+        file = new_file
+        
     return file, info
 
 
