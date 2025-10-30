@@ -13,7 +13,7 @@ from telegram import (
 class InlineTemplate:
     _add_sounds_button = InlineKeyboardButton(
         text="🎵 Add sounds",
-        url="http://127.0.0.1:8000/api/sounds/download",
+        url="https://telepad.cc",
     )
 
     NOT_FOUND = InlineQueryResultArticle(
@@ -47,5 +47,5 @@ class MessageTemplate:
         "🔉 • Manage your sounds on\n"
         "          <b>telepad.cc</b> or send any file or link\n"
         "          to this chat.\n\n"
-        "💠 • Enjoy using <b>Telepad<\b>!"
+        "💠 • Enjoy using <b>Telepad</b>!"
     )
